@@ -111,7 +111,7 @@ knowledge-base-workflow/
 |-- .gitignore                 # Git 忽略规则
 |
 |-- deploy/                    # 部署脚本
-|   |-- 01-install-tools.ps1   # 安装工具链
+|   |-- 01-install-tools.ps1   # 安装工具链（Git, ffmpeg, yt-dlp, FastGithub）
 |   |-- 02-setup-mcp-servers.ps1 # 部署 MCP 服务端
 |   |-- 03-configure-claude.ps1  # 配置 Claude Code
 |   |-- 04-install-whisper.ps1   # 安装语音识别
@@ -209,6 +209,7 @@ B站视频/网页/笔记 -> raw/ -> AI 编译 -> wiki/ 更新
 | 视频下载 | yt-dlp |
 | 音频处理 | ffmpeg |
 | API 代理 | ccswitch |
+| GitHub 加速 | FastGithub（国内用户） |
 
 ## 相关文档
 
