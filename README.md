@@ -120,8 +120,16 @@ knowledge-base-workflow/
 |-- config/                    # 配置模板
 |   |-- claude-settings.json   # Claude Code 全局配置
 |   |-- mcp-template.json      # MCP 服务配置模板
-|   +-- claude-skills/
-|       +-- vault-CLAUDE.md    # 知识库操作手册
+|   |-- claude-skills/
+|   |   +-- vault-CLAUDE.md    # 知识库操作手册
+|   +-- obsidian/              # Obsidian 即装即用配置
+|       |-- app.json           # 编辑器设置
+|       |-- appearance.json    # 主题设置
+|       |-- community-plugins.json  # 启用插件清单
+|       |-- core-plugins.json  # 核心插件开关
+|       +-- plugins/           # 社区插件文件（含 main.js）
+|           |-- obsidian42-brat/   # BRAT 插件
+|           +-- realclaudian/      # Claudian 会话管理
 |
 |-- mcp-servers/               # MCP 服务端代码
 |   |-- obsidian-mcp/

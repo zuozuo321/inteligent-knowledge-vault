@@ -30,8 +30,11 @@ Thumbs.db
 # Obsidian
 .obsidian/workspace*
 .obsidian/cache/
-.obsidian/plugins/
 .obsidian/themes/
+# 注意：.obsidian/plugins/ 不忽略，确保社区插件随仓库分发
+# 新用户克隆后 Obsidian 自动识别已安装插件，无需手动去插件市场安装
+# 但忽略插件内部的用户配置（每个人启动后自动生成自己的 data.json）
+.obsidian/plugins/*/data.json
 
 # Env
 .env
