@@ -7,14 +7,10 @@ Provides:
 - process_bilibili_video: Full pipeline (download + transcribe + clean)
 """
 
-import hashlib
-import hmac
 import json
 import os
 import re
 import sys
-import time
-import urllib.parse
 from pathlib import Path
 from typing import Optional
 
@@ -27,33 +23,6 @@ CACHE_DIR.mkdir(parents=True, exist_ok=True)
 
 # Initialize FastMCP server
 mcp = FastMCP("bilibili-mcp")
-
-
-# ============================================================
-# WBI Signature (Bilibili API authentication)
-# ============================================================
-
-def get_wbi_keys() -> tuple:
-    """Get WBI signing keys from Bilibili's navigation API."""
-    url = "https://api.bilibili.com/x/web-interface/nav"
-    resp = httpx.get(url, headers={"User-Agent": "Mozilla/5.0"}, timeout=10)
-    data = resp.json()
-    img_url = data["data"]["wbi_img"]["img_url"]
-    sub_url = data["data"]["wbi_img"]["sub_url"]
-    img_key = re.search(r"/([^/]+)\.png", img_url).group(1)
-    sub_key = re.search(r"/([^/]+)\.png", sub_url).group(1)
-    return img_key, sub_key
-
-
-def encrypt_wbi(data: dict, img_key: str, sub_key: str) -> dict:
-    """Sign parameters with WBI algorithm."""
-    mixin_key = sub_key[:4] + img_key[:4]
-    sort_dict = dict(sorted(data.items()))
-    sort_str = urllib.parse.urlencode(sort_dict)
-    sign = hashlib.md5((sort_str + mixin_key).encode()).hexdigest()
-    sort_dict["w_ts"] = data["w_ts"]
-    sort_dict["w_sign"] = sign
-    return sort_dict
 
 
 # ============================================================
@@ -128,7 +97,7 @@ def get_bilibili_subtitle(video_input: str) -> str:
         # Prefer Chinese subtitle
         selected = None
         for sub in subtitle_list:
-            lang = sub.get("lang", "")
+            lang = sub.get("lan", sub.get("lang", ""))
             if "zh" in lang:
                 selected = sub
                 break
@@ -232,10 +201,8 @@ def process_bilibili_video(
         if "error" in transcript:
             return json.dumps(transcript, ensure_ascii=False, indent=2)
 
-        raw_text = transcript.get("full_text", "")
-
         # Step 2: Clean transcript
-        cleaned = process_transcript(raw_text, language=language)
+        cleaned = process_transcript(transcript.get("segments", []), level="both")
 
         # Step 3: Build output
         result = {
@@ -249,7 +216,7 @@ def process_bilibili_video(
         reading_lines = []
         reading_lines.append(f"# {transcript.get('title', '视频转录')}")
         reading_lines.append("")
-        reading_lines.append(cleaned["reading_version"])
+        reading_lines.append(cleaned["clean_text"])
         result["reading_version"] = "\n".join(reading_lines)
 
         # Raw version (optional)
@@ -257,7 +224,8 @@ def process_bilibili_video(
             raw_lines = []
             raw_lines.append(f"# {transcript.get('title', '视频转录')} - 原始转录")
             raw_lines.append("")
-            raw_lines.append(cleaned["raw_with_timestamps"])
+            from transcribe_bv import format_txt
+            raw_lines.append(format_txt(transcript.get("segments", [])))
             result["original_transcript"] = "\n".join(raw_lines)
 
         return json.dumps(result, ensure_ascii=False, indent=2)

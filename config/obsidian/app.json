@@ -1,8 +1,9 @@
 {
-  "promptDelete": false,
+  "promptDelete": true,
   "attachmentFolderPath": "attachments",
   "alwaysUpdateLinks": true,
-  "newFileLocation": "current",
+  "newFileLocation": "folder",
+  "newFileFolderPath": "raw/notes",
   "useMarkdownLinks": false,
   "showUnsupportedFiles": false,
   "readableLineLength": true,

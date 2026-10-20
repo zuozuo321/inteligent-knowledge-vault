@@ -1,224 +1,75 @@
-# 知识库工作流 (Knowledge Vault Workflow)
+# 知识库工作流
 
-基于 **Karpathy LLM Wiki 方法论** 的个人知识库系统。
-利用 Claude Code 作为 AI 引擎，通过 MCP 服务端连接 Obsidian 知识库，
-实现素材的自动导入、编译、查询和回填。
+将原始素材 `raw/` 编译为可追溯的知识 `wiki/`，通过 `index/` 导航，问答和复盘保存在 `outputs/`。笔记为普通 Markdown，可由 Obsidian、Claude Code 或具备文件访问能力的 AI 助手处理。
 
-## 架构图
+## Windows 快速开始
 
-```
-+------------+     +---------+     +-------------+     +----------+
-|  用户      | --> | VSCode  | --> | Claude Code | --> | 知识库   |
-| (提问/整理) |     | (IDE)   |     | (AI 引擎)   |     | (Vault)  |
-+------------+     +---------+     +-------------+     +----------+
-                      |                  |                  |
-                      |                  v                  |
-                      |         +-----------------+         |
-                      |         | MCP 服务端      |         |
-                      +-------->| - obsidian-mcp  |<--------+
-                                | - bilibili-mcp  |
-                                +-----------------+
-                                       |
-                                       v
-                                +-----------------+
-                                | 外部服务        |
-                                | - B站 API      |
-                                | - Whisper (本地)|
-                                +-----------------+
-```
-
-## 六大组件
-
-### 1. ccswitch (API 代理)
-管理 API 密钥和请求路由，将 Claude Code 的 API 请求转发到兼容的模型后端。
-
-### 2. VSCode (集成开发环境)
-提供编辑器界面，集成 Claude Code 扩展，是 AI 交互的主要界面。
-
-### 3. Claude Code (AI 引擎)
-工作流的智能核心，负责理解用户意图、调用 MCP 工具、
-操作知识库、执行编译和查询。
-
-### 4. Obsidian (可视化知识库)
-Markdown 笔记管理工具，提供双向链接和图谱视图，
-让知识可视化。
-
-### 5. Claudian (会话管理)
-管理 AI 会话上下文和历史记录，保持会话连续性。
-
-### 6. 知识库 (Vault)
-按 Karpathy 三层架构组织的结构化知识存储：
-- **index/** - 索引层：主题导航和目录
-- **wiki/** - 知识层：深度结构化知识
-- **raw/** - 素材层：原始材料暂存
-
-## 快速开始
-
-### 从零到完整部署
+需要 Python 3.10+（建议 3.12）和 Git。在 PowerShell 中运行：
 
 ```powershell
-# 1. 克隆仓库
-git clone <仓库URL> D:\<你的路径>\knowledge-base-workflow
-cd knowledge-base-workflow
-
-# 2. 一键部署
-.\deploy\deploy-all.ps1
-
-# 3. 编辑配置
-#    编辑 config/claude-settings.json，替换占位符为实际路径
-#    编辑 .mcp.json，确认 MCP 服务路径正确
-
-# 4. 启动 Obsidian
-#    打开 Obsidian，选择知识库目录
-
-# 5. 在 VSCode 中打开项目根目录
-#    按 Ctrl+Shift+P，选择 "Claude: 启动"
-
-# 6. 开始使用
-#    提问或导入素材
+git clone https://github.com/zuozuo321/inteligent-knowledge-vault.git
+cd inteligent-knowledge-vault
+.\deploy\deploy-all.ps1 -VaultPath 'D:\my-knowledge-vault' -PythonPath 'python'
 ```
 
-### 手动部署（分步）
+打开 Obsidian，选择该知识库文件夹，从 `index/home.md` 开始。未指定 `-VaultPath` 时使用代码项目下的 `vault/`；它被 Git 忽略。自己的知识库建议放在代码项目之外。
+
+部署会创建首页、主题导航、素材队列、使用指南、整理记录及三类模板，并生成包含真实路径的项目级 `.mcp.json`。已有笔记、Obsidian 配置和 Claude 全局设置会保留；重复运行不会覆盖它们。修改项目 MCP 配置前会生成备份，其他服务条目保持不变。
+
+### 分步配置
 
 ```powershell
-# 安装工具链
-.\deploy\01-install-tools.ps1
-
-# 部署 MCP 服务端
-.\deploy\02-setup-mcp-servers.ps1
-
-# 配置 Claude Code
-.\deploy\03-configure-claude.ps1
-
-# 安装语音识别
-.\deploy\04-install-whisper.ps1
+.\deploy\02-setup-mcp-servers.ps1 -PythonPath 'C:\path\to\python.exe'
+.\deploy\03-configure-claude.ps1 -VaultPath 'D:\my-knowledge-vault'
 ```
 
-### 前提条件
+Claude Code 从代码项目目录启动时使用 `.mcp.json`。模型服务与登录沿用你自己的配置。本项目不预置 API 密钥、模型代理地址或账户信息。
 
-- Windows 10/11
-- Python 3.10+（建议 3.11）
-- Node.js 18+（VSCode 和 Claude 扩展需要）
-- NVIDIA GPU 4GB+ VRAM（可选，用于 GPU 加速语音识别）
-- 网络连接（B站 API 和模型下载需要）
+社区插件按需安装：向配置脚本传入 `-InstallCommunityPlugins`，然后在 Obsidian 中自行启用。核心知识管理流程不依赖社区插件。
 
-## 目录说明
+### B 站素材
 
-```
-knowledge-base-workflow/
-|
-|-- README.md                  # 项目总览（本文件）
-|-- .gitignore                 # Git 忽略规则
-|
-|-- deploy/                    # 部署脚本
-|   |-- 01-install-tools.ps1   # 安装工具链（Git, ffmpeg, yt-dlp, FastGithub）
-|   |-- 02-setup-mcp-servers.ps1 # 部署 MCP 服务端
-|   |-- 03-configure-claude.ps1  # 配置 Claude Code
-|   |-- 04-install-whisper.ps1   # 安装语音识别
-|   +-- deploy-all.ps1           # 一键部署
-|
-|-- config/                    # 配置模板
-|   |-- claude-settings.json   # Claude Code 全局配置
-|   |-- mcp-template.json      # MCP 服务配置模板
-|   |-- claude-skills/
-|   |   +-- vault-CLAUDE.md    # 知识库操作手册
-|   +-- obsidian/              # Obsidian 即装即用配置
-|       |-- app.json           # 编辑器设置
-|       |-- appearance.json    # 主题设置
-|       |-- community-plugins.json  # 启用插件清单
-|       |-- core-plugins.json  # 核心插件开关
-|       +-- plugins/           # 社区插件文件（含 main.js）
-|           |-- obsidian42-brat/   # BRAT 插件
-|           +-- realclaudian/      # Claudian 会话管理
-|
-|-- mcp-servers/               # MCP 服务端代码
-|   |-- obsidian-mcp/
-|   |   +-- server.py          # Obsidian MCP 服务端
-|   +-- bilibili-mcp/
-|       |-- bilibili_mcp_server.py # B站 MCP 服务端
-|       |-- transcribe_bv.py       # 语音转写
-|       +-- text_processor.py      # 文本后处理
-|
-+-- workflow-docs/             # 工作流文档
-    |-- OVERVIEW.md            # 系统总览
-    |-- KARPATHY-LLM-WIKI.md   # 方法论详解
-    |-- INGEST-FLOW.md         # 素材导入流程
-    |-- QUERY-FLOW.md          # 查询与回填流程
-    +-- VAULT-SCHEMA.md        # 知识库 Schema
+默认安装元数据/字幕服务所需依赖。视频需要公开可访问且字幕接口可用；登录、风控或无字幕情形会返回错误信息。
+
+无字幕视频需要本地转写时，可使用：
+
+```powershell
+.\deploy\deploy-all.ps1 -VaultPath 'D:\my-knowledge-vault' -WithTranscription
 ```
 
-## 工作流概览
+这会另装 ffmpeg、yt-dlp、faster-whisper 并加载 tiny 模型。模型下载需要网络和磁盘空间；GPU 可选，CPU 可运行。`WHISPER_MODELS_DIR` 可指定转写缓存目录，`HF_ENDPOINT` 可由使用者显式设置。部署不修改全局网络设置或 Git TLS 校验。
 
-### 素材导入 (Ingest)
+## 日常工作流
 
+1. **收集**：保存原文和出处到 raw，登记素材队列。
+2. **编译**：将结论、证据、例子和疑问整理到 wiki，回链原文。
+3. **索引**：更新 index，连接相关条目。
+4. **查询**：先检索 index/wiki，核实时读取 raw，回答注明出处。
+5. **回填**：保存有价值的问答到 outputs，补充已有知识。
+
+知识库内的 `AGENTS.md`、`CLAUDE.md` 和模板约束整理行为。不要把个人笔记或密钥提交到公开代码仓库。
+
+## MCP 工具
+
+Obsidian 服务提供 list_notes、read_note、search_notes、create_note、get_tags、get_backlinks、get_vault_stats。读写限制在显式配置的知识库中；拒绝库外路径和隐藏配置目录，创建不会覆盖已有文件。重名笔记必须使用相对路径。编辑已有笔记由客户端文件工具完成。
+
+B 站服务提供字幕获取、音频转写和双版本文本处理。转写返回的片段用于生成阅读版和带时间戳的原始版。
+
+## 验证
+
+```powershell
+.\.venv\Scripts\python.exe -m unittest discover -s tests -v
+.\tests\test-deploy.ps1 -PythonPath .\.venv\Scripts\python.exe
+.\.venv\Scripts\python.exe tests\smoke_mcp.py
 ```
-B站视频/网页/笔记 -> raw/ -> AI 编译 -> wiki/ 更新
-```
 
-### 查询 (Query)
+单元测试验证路径限制、重名、覆盖保护、标签、反向链接及 B 站文本管线（网络与识别使用模拟数据）。MCP 烟雾测试启动真实 stdio 服务并调用工具，不下载视频或模型。部署测试在临时目录验证首次安装、重复运行及已有内容保留。符号链接测试在 Windows 不具备创建权限时跳过。
 
-```
-用户提问 -> AI 查 index/ -> 深入阅读 wiki/ -> 合成回答
-```
+## 目录
 
-### 回填 (Backfill)
-
-```
-回答中的有价值内容 -> 保存到 wiki/ 或 outputs/
-```
-
-### 维护 (Maintain)
-
-```
-检查 orphan notes -> 合并重复 -> 更新索引
-```
-
-## 使用场景
-
-### 场景 1：从 B站视频学习
-
-1. 用户提供 B站视频链接
-2. AI 通过 `bilibili-mcp` 下载音频并转写为文字
-3. AI 去除口语化内容，生成阅读版
-4. AI 将整理后的内容保存到 `raw/bilibili/`
-5. AI 检查现有 wiki/ 知识，将新概念编译到 wiki/
-
-### 场景 2：查询已有知识
-
-1. 用户提问技术问题
-2. AI 在 `index/` 中定位相关主题
-3. AI 深入阅读 `wiki/` 中的相关文件
-4. AI 综合信息并生成回答
-5. 如有新信息产生，AI 回填到知识库
-
-### 场景 3：整理网页笔记
-
-1. 用户分享网页链接
-2. AI 获取网页内容并保存为 Markdown
-3. AI 提取关键概念
-4. AI 创建或更新 wiki/ 文件
-
-## 技术栈
-
-| 组件 | 技术 |
-|------|------|
-| AI 引擎 | Claude Code (Anthropic SDK) |
-| MCP 框架 | FastMCP (Python) |
-| 知识库 | Obsidian (Markdown) |
-| 语音识别 | faster-whisper (本地 GPU) |
-| 视频下载 | yt-dlp |
-| 音频处理 | ffmpeg |
-| API 代理 | ccswitch |
-| GitHub 加速 | FastGithub（国内用户） |
-
-## 相关文档
-
-- [系统总览](workflow-docs/OVERVIEW.md)
-- [Karpathy LLM Wiki 方法论](workflow-docs/KARPATHY-LLM-WIKI.md)
-- [素材导入流程](workflow-docs/INGEST-FLOW.md)
-- [查询与回填流程](workflow-docs/QUERY-FLOW.md)
-- [知识库 Schema](workflow-docs/VAULT-SCHEMA.md)
-
-## 许可证
-
-本项目仅供个人学习使用。
+- `config/vault/`：可复用知识库种子文件。
+- `config/obsidian/`：Obsidian 配置和可选社区插件。
+- `deploy/`：安装和配置脚本。
+- `mcp-servers/`：Python MCP 服务。
+- `tests/`：回归测试与协议测试。
+- `workflow-docs/`：知识组织和工作流参考。

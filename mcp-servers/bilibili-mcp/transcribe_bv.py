@@ -17,7 +17,7 @@ B站视频语音转文字工具 — 独立脚本
 
 import sys
 import os
-os.environ.setdefault('HF_ENDPOINT', 'https://hf-mirror.com')
+# Respect an explicitly configured HF_ENDPOINT; use the official default otherwise.
 import json
 import subprocess
 import tempfile
@@ -35,16 +35,16 @@ log = logging.getLogger(__name__)
 
 # 确保 CUDA DLL 在 PATH 中（nvidia pip 包需要手动添加到 PATH）
 _cuda_dll_paths = [
-    str(Path(__file__).parent / "Lib" / "site-packages" / "nvidia" / "cublas" / "bin"),
-    str(Path(__file__).parent / "Lib" / "site-packages" / "nvidia" / "cudnn" / "bin"),
-    str(Path(__file__).parent / "Lib" / "site-packages" / "nvidia" / "cuda_nvrtc" / "bin"),
+    str(Path(sys.prefix) / "Lib" / "site-packages" / "nvidia" / "cublas" / "bin"),
+    str(Path(sys.prefix) / "Lib" / "site-packages" / "nvidia" / "cudnn" / "bin"),
+    str(Path(sys.prefix) / "Lib" / "site-packages" / "nvidia" / "cuda_nvrtc" / "bin"),
 ]
 for _p in _cuda_dll_paths:
-    if Path(_p).exists() and _p not in os.environ["PATH"]:
-        os.environ["PATH"] = _p + ";" + os.environ["PATH"]
+    if Path(_p).exists() and _p not in os.environ.get("PATH", ""):
+        os.environ["PATH"] = _p + os.pathsep + os.environ.get("PATH", "")
 
 # --- 配置 ---
-MODELS_DIR = Path(os.environ.get("WHISPER_MODELS_DIR", r"D:\左悦琦\.cache\whisper_models"))
+MODELS_DIR = Path(os.environ.get("WHISPER_MODELS_DIR", str(Path.home() / ".cache" / "whisper_models")))
 YT_DLP_PATH = None  # 自动查找
 
 
@@ -59,8 +59,8 @@ def find_yt_dlp() -> str:
         YT_DLP_PATH = "yt-dlp"
         return YT_DLP_PATH
 
-    # D:\左悦琦\.tools\
-    tool_path = Path(r"D:\左悦琦\.tools\yt-dlp.exe")
+    # User-local tools directory
+    tool_path = Path.home() / ".local" / "bin" / "yt-dlp.exe"
     if tool_path.exists():
         YT_DLP_PATH = str(tool_path)
         return YT_DLP_PATH
@@ -248,7 +248,7 @@ def transcribe_video(video_input: str, model_size: str = "medium", language: str
 
         # Build result
         full_text = "\n".join([s["text"] for s in segments])
-        duration = segments[-1]["end"] - segments[0]["start"]
+        duration = segments[-1]["end"]
 
         result = {
             "title": title,

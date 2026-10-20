@@ -39,3 +39,7 @@ Thumbs.db
 # Env
 .env
 *.local.json
+# Generated machine-specific configuration and personal notes
+.mcp.json
+/vault/
+*.backup-*

@@ -1,0 +1,3 @@
+-r requirements.txt
+faster-whisper>=1.1,<2
+yt-dlp

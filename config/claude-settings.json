@@ -1,28 +1,3 @@
 {
-  "env": {
-    "ANTHROPIC_AUTH_TOKEN": "PROXY_MANAGED",
-    "ANTHROPIC_BASE_URL": "http://127.0.0.1:15721",
-    "ANTHROPIC_DEFAULT_HAIKU_MODEL": "claude-haiku-4-5",
-    "ANTHROPIC_DEFAULT_HAIKU_MODEL_NAME": "$HAIKU_MODEL",
-    "ANTHROPIC_DEFAULT_OPUS_MODEL": "claude-opus-4-8[1M]",
-    "ANTHROPIC_DEFAULT_OPUS_MODEL_NAME": "$OPUS_MODEL",
-    "ANTHROPIC_DEFAULT_SONNET_MODEL": "claude-sonnet-4-6[1M]",
-    "ANTHROPIC_DEFAULT_SONNET_MODEL_NAME": "$SONNET_MODEL"
-  },
-  "includeCoAuthoredBy": false,
-  "model": "opus",
-  "mcpServers": {
-    "obsidian": {
-      "command": "$PYTHON_PATH",
-      "args": [
-        "$OBSIDIAN_MCP_SERVER_PATH"
-      ]
-    },
-    "bilibili": {
-      "command": "$PYTHON_PATH",
-      "args": [
-        "$BILIBILI_MCP_SERVER_PATH"
-      ]
-    }
-  }
+  "includeCoAuthoredBy": false
 }
